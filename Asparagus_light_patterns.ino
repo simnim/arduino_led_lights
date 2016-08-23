@@ -37,6 +37,8 @@
 
 // Let's have a green breathing pattern for when the strip first turns on.
 #define MILLISECONDS_OF_GREEN_BREATHING 6000
+// Instead of turning off, let's keep them at least at this level
+#define BREATHING_MIN_BRIGHTNESS 40
 
 // For a 2A power supply this should be max 70
 // Anywhere 5-50 is a great range for testing.
@@ -176,9 +178,12 @@ void red_green_blue_rotation() {
 // Fun pattern that'll run for a bit on boot then change to the interesting pattern.
 // I this guy is a fun way to show off the arduinos AND still have some green time.
 void green_breathing_inner_loop() {
-  float val = (exp(cos((millis()-2000)/2000.0*PI)) - 0.36787944)*108.0;
-  //Serial.println(val)
-  FastLED.showColor(CRGB(0,val,0));
+  // This code is inspired by http://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
+  float green_bval = (exp(cos((millis()-2000)/2000.0*PI)) - 0.36787944)*108.0;
+  // Actually, I don't want this to dim to nothing. I'll keep it at 
+  // at least BREATHING_MIN_BRIGHTNESS by remapping from [0,255] to [_,255]
+  green_bval = green_bval*(255-BREATHING_MIN_BRIGHTNESS)/255 + BREATHING_MIN_BRIGHTNESS;
+  FastLED.showColor(CRGB(0,green_bval,0));
   FastLED.delay(VSHORT_DELAY);
 }
 
