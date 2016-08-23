@@ -46,6 +46,7 @@
 
 
 // < GLOBALS >
+// Our leds represented as an array.
 CRGB leds[NUM_LEDS];
 // For ease of use and since it does not matter I only use one byte of precision. #LAZY
 uint8_t cycle_count;
@@ -80,48 +81,26 @@ void fetch_cycle_count_iterate_using_eeprom() {
   
 
 // rotate all the leds by one per DELAY in an infinite loop
-void rotate_leds(uint8_t DELAY) {
+void rotate_leds(unsigned int DELAY) {
     while(1) {
-      // Rotate the rainbow one by one until we hit the end.
+      // Rotate the array one by one until we hit the end.
       CRGB temp;
-      for (uint8_t i = 0; i < NUM_LEDS-1; i++) {
+      for (unsigned int i = 0; i < NUM_LEDS-1; i++) {
         temp = leds[i+1];
         leds[i+1] = leds[i];
         leds[i] = temp;
       }
       FastLED.show();
-      delay(DELAY);
+      FastLED.delay(DELAY);
   }
 }
-
-
-
-// </ SOME UTIL FUNCTIONS >
-// </ SOME UTIL FUNCTIONS >
-// </ SOME UTIL FUNCTIONS >
-// </ SOME UTIL FUNCTIONS >
-// </ SOME UTIL FUNCTIONS >
-// </ SOME UTIL FUNCTIONS >
-
-
-
-
-
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-// < DEFINE YOUR FUNCTIONS HERE >
-
 
 
 // A useful way to display a number on the strip.
 // Uses include displaying a cycle count or device id on boot.
 void show_counter_unary(int num_to_show) {
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {leds[i] = CRGB::Black;}
-  for (uint8_t i = 0; i < num_to_show; i++) {
+  for (unsigned int i = 0; i < NUM_LEDS; i++) {leds[i] = CRGB::Black;}
+  for (unsigned int i = 0; i < num_to_show; i++) {
     if ((i+1) % 10 == 0) {
       leds[i] = CRGB(RGB_INTENSITY,0,0);
     } else if ((i+1) % 5) {
@@ -138,13 +117,33 @@ void show_counter_unary(int num_to_show) {
   FastLED.show();
 }
 
+// </ SOME UTIL FUNCTIONS >
+// </ SOME UTIL FUNCTIONS >
+// </ SOME UTIL FUNCTIONS >
+// </ SOME UTIL FUNCTIONS >
+// </ SOME UTIL FUNCTIONS >
+// </ SOME UTIL FUNCTIONS >
+
+
+
+
+
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+// < DEFINE YOUR FUNCTIONS HERE >
+
+
 // Rotate as many hues as possible in a loop.
 void rainbow_rotation() {
   // Set the rainbow
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
+  for (unsigned int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(float(i)/NUM_LEDS * NUM_HUES, 255, 60);
   }
-  delay(1);
+  FastLED.delay(1);
   FastLED.show();
   rotate_leds(MED_DELAY);
 }
@@ -154,14 +153,14 @@ void rainbow() {
   static uint8_t hue = 0;
   while (1){
     FastLED.showColor(CHSV(hue++, 255, 60)); 
-    delay(VSHORT_DELAY);
+    FastLED.delay(VSHORT_DELAY);
   }
 }
 
 // Mildly interesting pattern of rotating red, green, and blue leds
 void red_green_blue_rotation() {
   // Set the initial array
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
+  for (unsigned int i = 0; i < NUM_LEDS; i++) {
     if ((i+1) % 10 == 0) {
       leds[i] = CRGB(RGB_INTENSITY,0,0);
     } else if ((i+1) % 5) {
@@ -180,7 +179,7 @@ void green_breathing_inner_loop() {
   float val = (exp(cos((millis()-2000)/2000.0*PI)) - 0.36787944)*108.0;
   //Serial.println(val)
   FastLED.showColor(CRGB(0,val,0));
-  delay(VSHORT_DELAY);
+  FastLED.delay(VSHORT_DELAY);
 }
 
 
@@ -223,7 +222,7 @@ void loop() {
   } else { 
     uint16_t pattern_index = random(num_patterns);
     #ifdef DEBUG
-      Serial.print("Pattern index");
+      Serial.print("Pattern index: ");
       Serial.println(pattern_index);
     #endif
     led_patterns[pattern_index]();
