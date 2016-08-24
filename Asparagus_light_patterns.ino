@@ -25,7 +25,7 @@
 
 #define EEPROM_CYCLE_ADDRESS 0
 
-#define NUM_LEDS 120
+#define NUM_LEDS 45
 #define DATA_PIN 13
 
 #define VSHORT_DELAY 10
@@ -139,25 +139,102 @@ void show_counter_unary(int num_to_show) {
 // < DEFINE YOUR FUNCTIONS HERE >
 
 
-// Rotate as many hues as possible in a loop.
-void rainbow_rotation() {
-  // Set the rainbow
-  for (unsigned int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(float(i)/NUM_LEDS * NUM_HUES, 255, 60);
+
+void addGlitter( fract8 chanceOfGlitter) {
+  if( random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
-  FastLED.delay(1);
-  FastLED.show();
-  rotate_leds(MED_DELAY);
 }
 
+void rainbow_with_glitter() {
+ static uint8_t hue = 0;
+  while (1){
+    fill_rainbow( leds, NUM_LEDS, hue++, 7);
+    addGlitter(80);
+    FastLED.show();
+    FastLED.delay(VSHORT_DELAY);
+  }
+}
+
+void confetti() {
+  static uint8_t hue = 0;
+  while (1){
+    // random colored speckles that blink in and fade smoothly
+    fadeToBlackBy( leds, NUM_LEDS, 10);
+    int pos = random16(NUM_LEDS);
+    leds[pos] += CHSV( hue++ + random8(64), 200, 255);
+    FastLED.show();
+    FastLED.delay(VSHORT_DELAY);
+  }
+}
+
+// Rotate as many hues as possible in a loop.
+void rainbow_wave() {
+  static uint8_t hue = 0;
+  while (1){
+    fill_rainbow( leds, NUM_LEDS, hue++, 7);
+    FastLED.show();
+    FastLED.delay(VSHORT_DELAY);
+  }
+}
+
+
 // Taste the rainbow
-void rainbow() { 
+void rainbow_strip() { 
   static uint8_t hue = 0;
   while (1){
     FastLED.showColor(CHSV(hue++, 255, 60)); 
     FastLED.delay(VSHORT_DELAY);
   }
 }
+
+
+
+void sinelon() {
+  static uint8_t hue = 0;
+  while(1) {
+    // a colored dot sweeping back and forth, with fading trails
+    fadeToBlackBy( leds, NUM_LEDS, 20);
+    int pos = beatsin16(13,0,NUM_LEDS);
+    leds[pos] += CHSV( hue++, 255, 192);
+    FastLED.show();
+    FastLED.delay(VSHORT_DELAY);
+  }
+}
+
+
+
+void bpm() {
+   static uint8_t hue = 0;
+   while (1) {
+      // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
+      uint8_t BeatsPerMinute = 62;
+      CRGBPalette16 palette = PartyColors_p;
+      uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
+      for( int i = 0; i < NUM_LEDS; i++) { //9948
+        leds[i] = ColorFromPalette(palette, hue+(i*2), beat-hue+(i*10));
+      }
+      FastLED.show();
+      FastLED.delay(VSHORT_DELAY);
+      hue++;
+    }
+}
+
+void juggle() {
+   static uint8_t hue = 0;
+   while(1) {
+      // eight colored dots, weaving in and out of sync with each other
+      fadeToBlackBy( leds, NUM_LEDS, 20);
+      byte dothue = 0;
+      for( int i = 0; i < 8; i++) {
+        leds[beatsin16(i+7,0,NUM_LEDS)] |= CHSV(dothue, 200, 255);
+        dothue += 32;
+      }
+      FastLED.show();
+      FastLED.delay(VSHORT_DELAY);
+   }
+}
+
 
 // Mildly interesting pattern of rotating red, green, and blue leds
 void red_green_blue_rotation() {
@@ -175,6 +252,8 @@ void red_green_blue_rotation() {
   rotate_leds(LONGISH_DELAY);
 }
 
+
+
 // Fun pattern that'll run for a bit on boot then change to the interesting pattern.
 // I this guy is a fun way to show off the arduinos AND still have some green time.
 void green_breathing_inner_loop() {
@@ -186,8 +265,6 @@ void green_breathing_inner_loop() {
   FastLED.showColor(CRGB(0,green_bval,0));
   FastLED.delay(VSHORT_DELAY);
 }
-
-
 
 // </ DEFINE YOUR FUNCTIONS HERE >
 // </ DEFINE YOUR FUNCTIONS HERE >
@@ -202,9 +279,13 @@ void green_breathing_inner_loop() {
 typedef void (*pattern_list[])();
 // #NOTE: Add your patterns to this list to have them randomly called.
 pattern_list led_patterns = {  
-  rainbow, 
-  rainbow_rotation, 
-  red_green_blue_rotation 
+  rainbow_strip, 
+  rainbow_wave, 
+  red_green_blue_rotation,
+  rainbow_with_glitter,
+  confetti,
+  bpm,
+  juggle
 };
 unsigned int num_patterns = sizeof(led_patterns) / sizeof(led_patterns[0]);
 
@@ -213,12 +294,14 @@ unsigned int num_patterns = sizeof(led_patterns) / sizeof(led_patterns[0]);
 void setup() {
   Serial.begin(115200);
   EEPROM.begin(512);
+  FastLED.setBrightness(50);
   // Put the cycle count in global memory
   fetch_cycle_count_iterate_using_eeprom();
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS ).setCorrection(TypicalLEDStrip);
   // Change the seed to the cycle count
   randomSeed(cycle_count);
 }
+
 
 // Do the green_breathing_inner_loop until enough time has passed then pick one at random.
 void loop() {
