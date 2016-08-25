@@ -45,6 +45,7 @@
 // Some of my functions were using just a straight value for the RGB setting.
 // This is not using the FastLED brightness setting
 #define RGB_INTENSITY 5
+// Define this if you want FastLED to dim things globally
 #define FASTLED_BRIGHTNESS 50
 
 // < GLOBALS >
@@ -294,7 +295,9 @@ unsigned int num_patterns = sizeof(led_patterns) / sizeof(led_patterns[0]);
 void setup() {
   Serial.begin(115200);
   EEPROM.begin(512);
-  FastLED.setBrightness(FASTLED_BRIGHTNESS);
+  #ifdef FASTLED_BRIGHTNESS
+     FastLED.setBrightness(FASTLED_BRIGHTNESS);
+  #endif
   // Put the cycle count in global memory
   fetch_cycle_count_iterate_using_eeprom();
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS ).setCorrection(TypicalLEDStrip);
