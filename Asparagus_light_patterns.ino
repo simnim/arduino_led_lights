@@ -36,7 +36,7 @@
 #define NUM_HUES 256
 
 // Let's have a green breathing pattern for when the strip first turns on.
-#define MILLISECONDS_OF_GREEN_BREATHING 60000
+#define MILLISECONDS_OF_GREEN_BREATHING (1000 * 60)
 // Instead of turning off, let's keep them at least at this level
 #define BREATHING_MIN_BRIGHTNESS 40
 
@@ -46,7 +46,7 @@
 // This is not using the FastLED brightness setting
 #define RGB_INTENSITY 5
 // Define this if you want FastLED to dim things globally
-#define FASTLED_BRIGHTNESS 50
+//#define FASTLED_BRIGHTNESS 50
 
 // < GLOBALS >
 // Our leds represented as an array.
@@ -295,12 +295,12 @@ unsigned int num_patterns = sizeof(led_patterns) / sizeof(led_patterns[0]);
 void setup() {
   Serial.begin(115200);
   EEPROM.begin(512);
-  #ifdef FASTLED_BRIGHTNESS
-     FastLED.setBrightness(FASTLED_BRIGHTNESS);
-  #endif
   // Put the cycle count in global memory
   fetch_cycle_count_iterate_using_eeprom();
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS ).setCorrection(TypicalLEDStrip);
+  #ifdef FASTLED_BRIGHTNESS
+     FastLED.setBrightness(FASTLED_BRIGHTNESS);
+  #endif
   // Change the seed to the cycle count
   randomSeed(cycle_count);
 }
@@ -319,4 +319,5 @@ void loop() {
     led_patterns[pattern_index]();
   }
 }
+
 
